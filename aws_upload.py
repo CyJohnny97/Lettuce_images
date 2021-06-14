@@ -32,16 +32,36 @@ def upload_to_aws(file, bucket, saved_location):
         return "Failure to upload {} to {} bucket".format(file, bucket)
 
 
-path = 'images//rgb//RGB_1.png'
-img = Image.open(path)
+for file in os.listdir('images//rgb'):
+    print(file)
 
-# Create a name
-name = path[-9:]
+    path = f'images//rgb//{file}'
+    img = Image.open(path)
 
-# Create an object in memory, aws needs a file to upload
-mem_obj = BytesIO()
-img.save(mem_obj, format=img.format)
-mem_obj.seek(0)
+    # Create a name
+    name = path[-9:]
 
-# Store in aws bucket
-upload_to_aws(mem_obj, 'aicore-lettuce-project', name)
+    # Create an object in memory, aws needs a file to upload
+    mem_obj = BytesIO()
+    img.save(mem_obj, format=img.format)
+    mem_obj.seek(0)
+
+    # Store in aws bucket
+    upload_to_aws(mem_obj, 'aicore-lettuce-project', name)
+
+for file in os.listdir('images//depth'):
+    print(file)
+
+    path = f'images//depth//{file}'
+    img = Image.open(path)
+
+    # Create a name
+    name = path[-9:]
+
+    # Create an object in memory, aws needs a file to upload
+    mem_obj = BytesIO()
+    img.save(mem_obj, format=img.format)
+    mem_obj.seek(0)
+
+    # Store in aws bucket
+    upload_to_aws(mem_obj, 'aicore-lettuce-project', name)
