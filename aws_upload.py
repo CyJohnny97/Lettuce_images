@@ -1,3 +1,9 @@
+"""
+Upload images to S3 bucket
+Allows access from any PC
+Assumes AWS already to configured
+"""
+
 import boto3
 from PIL import Image
 import requests
@@ -30,11 +36,12 @@ path = 'images//rgb//RGB_1.png'
 img = Image.open(path)
 
 # Create a name
-name = path[-1:-10]
+name = path[-9:]
 
 # Create an object in memory, aws needs a file to upload
 mem_obj = BytesIO()
 img.save(mem_obj, format=img.format)
 mem_obj.seek(0)
+
 # Store in aws bucket
 upload_to_aws(mem_obj, 'aicore-lettuce-project', name)
