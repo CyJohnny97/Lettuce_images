@@ -32,36 +32,28 @@ def upload_to_aws(file, bucket, saved_location):
         return "Failure to upload {} to {} bucket".format(file, bucket)
 
 
-for file in os.listdir('images//rgb'):
-    print(file)
+def upload_images_s3(img_type:str, bucket='aicore-lettuce-project'):
+    """
+    Uploads rgb or depth images to the project's S3 bucket
+    :param bucket: name of S3 bucket
+    :param img_type: e.g. 'rgb' or 'depth'
+    :return:
+    """
+    for file in os.listdir('images//' + img_type):
+        print(file)
 
-    path = f'images//rgb//{file}'
-    img = Image.open(path)
+        path = f'images//rgb//{file}'
+        img = Image.open(path)
 
-    # Create a name
-    name = path[-9:]
+        # Create a name
+        name = path[-9:]
 
-    # Create an object in memory, aws needs a file to upload
-    mem_obj = BytesIO()
-    img.save(mem_obj, format=img.format)
-    mem_obj.seek(0)
+        # Create an object in memory, aws needs a file to upload
+        mem_obj = BytesIO()
+        img.save(mem_obj, format=img.format)
+        mem_obj.seek(0)
 
-    # Store in aws bucket
-    upload_to_aws(mem_obj, 'aicore-lettuce-project', name)
+        # Store in aws bucket
+        upload_to_aws(mem_obj, 'aicore-lettuce-project', name)
 
-for file in os.listdir('images//depth'):
-    print(file)
-
-    path = f'images//depth//{file}'
-    img = Image.open(path)
-
-    # Create a name
-    name = path[-9:]
-
-    # Create an object in memory, aws needs a file to upload
-    mem_obj = BytesIO()
-    img.save(mem_obj, format=img.format)
-    mem_obj.seek(0)
-
-    # Store in aws bucket
-    upload_to_aws(mem_obj, 'aicore-lettuce-project', name)
+    print('Images in {} uploaded to {} S3 bucket successfully'.format(path, bucket))
