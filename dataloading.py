@@ -4,39 +4,70 @@ Enables train-test-validation pipelines to be developed for model training.
 Transformations informed by data exploration notebook.
 """
 
-from pathlib import Path
-from tqdm import tqdm
-from Pillow import Image
-import requests
-import json
-import torch
+
 import os
-import numpy as np
+import pandas as pd
+import json
+from PIL import Image
+from matplotlib import pyplot as plt
+
+cwd = os.getcwd()
+rgb_path = os.path.join(cwd, 'images', 'rgb', 'RGB_1.png')
+
+rgb_img = Image.open(rgb_path)
+
+plt.imshow(rgb_img)
+plt.show()
+
+# Let's check the depth image
+depth_path = os.path.join(cwd,'images', 'depth','Debth_1.png' )
+
+depth_img = Image.open(depth_path)
+
+# Example depth image
+plt.imshow(depth_img)
+plt.show()
+
+# Depth image looks like a promising path to reduce the image size to focus on the key features.
+
+# Lets try a larger lettuce as well
+depth_img_lrg = Image.open(os.path.join(cwd, 'images', 'depth', 'Debth_346.png' ))
+
+plt.imshow(depth_img_lrg)
+plt.show()
+
+# A little bit trickier, because the lettuce extends over the crate. Lets look at different options for cropping
+
+rgb_img_cropped = rgb_img.crop((600, 200, 1600, 1000))
+plt.imshow(rgb_img_cropped)
+plt.show()
 
 
-class ImageDataset(torch.utils.data.Dataset):
-    def __init__(self, root_dir, download=False):
+image_info = pd.read_json(os.path.join(cwd, 'images', 'labels_latest.json'))
 
-        self.root_dir = root_dir
-        if download:
-            self.download()
-        else:
-            if not os.path.exists(f'{self.root_dir}/images'):
-                raise RuntimeError('Dataset not found.' +
-                                   'You can use download=True to download it')
+image_info.head()
 
-        with open('DATA/image_data.json') as json_file:
-            data = json.load(json_file)
-        self.files = []
-        self.labels = []
-        for furniture in data.keys():
-            self.files.append(furniture['image'])
-            self.lab.append(data['description'])
+# Open json file with all feature and target information
+with open(os.path.join(cwd, 'images', 'labels_latest.json'), 'r') as f:
+    image_info2 = json.loads(f.read())
 
-        def __getitem__(self, index):
-            label = self.labels[index]
-            label = torch.as_tensor(label)
-            image = Image.open(self.files[index])
-            image = np.array(image)
-            return image, label
+# Confirm success
+print(image_info2['Measurements'].keys())
+
+# Check there are no duplicates
+if len(image_info2['Measurements'].keys()) == len(set(image_info2['Measurements'].keys())):
+    print('NO DUPLICATES!')
+else:
+    print('We are screwed...')
+
+image_list = image_info2['Measurements'].keys()
+
+for image in image_list:
+    print(image_info2['Measurements'][image])
+    break
+
+data = pd.DataFrame(image_info2['Measurements'])
+print(data.T.head())
+
+data.T.to_csv('Image_dataset.csv')
 
