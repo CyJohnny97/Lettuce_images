@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import pandas as pd
 
+# Using pandas to get information about images (both RGB and Depth)
 df = pd.read_csv('C:\\Users\\j_theocharides\\PycharmProjects\\AiCore_Lettuce\\Lettuce_images\\Merged_dataframes.csv')
 print(len(df))
 

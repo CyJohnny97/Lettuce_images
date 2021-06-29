@@ -12,25 +12,20 @@ import time
 import os
 import copy
 
+# Model used from https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html
+# Model has been refactored to work with lettuce classes
+# Refactored bigger comments to make them smaller
+
 plt.ion()   # interactive mode
 
-
+# Convert images to tensors
 if __name__ == '__main__':
-    # freeze_support()
-    # Data augmentation and normalization for training
-    # Just normalization for validation
     data_transforms = {
         'train': transforms.Compose([
-            # transforms.RandomResizedCrop(224),
-            # transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
-            # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
         'val': transforms.Compose([
-            # transforms.Resize(256),
-            # transforms.CenterCrop(224),
             transforms.ToTensor(),
-            # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
     }
 
@@ -44,14 +39,9 @@ if __name__ == '__main__':
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
     class_names = image_datasets['train'].classes
     print(class_names)
-    # device = torch.device('cpu')
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    ######################################################################
-    # Visualize a few images
-    # ^^^^^^^^^^^^^^^^^^^^^^
-    # Let's visualize a few training images so as to understand the data
-    # augmentations.
+    # Displays some of the different training images
 
     def imshow(inp, title=None):
         """Imshow for Tensor."""
@@ -75,19 +65,7 @@ if __name__ == '__main__':
 
     imshow(out, title=[class_names[x] for x in classes])
 
-    ######################################################################
-    # Training the model
-    # ------------------
-    #
-    # Now, let's write a general function to train a model. Here, we will
-    # illustrate:
-    #
-    # -  Scheduling the learning rate
-    # -  Saving the best model
-    #
-    # In the following, parameter ``scheduler`` is an LR scheduler object from
-    # ``torch.optim.lr_scheduler``.
-
+    # Training model with scheduler implemented
 
     def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
         since = time.time()
@@ -157,12 +135,7 @@ if __name__ == '__main__':
         return model
 
 
-    ######################################################################
-    # Visualizing the model predictions
-    # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    #
-    # Generic function to display predictions for a few images
-    #
+    # Model visualization with showing a few of the images
 
     def visualize_model(model, num_images=6):
         was_training = model.training
@@ -190,12 +163,7 @@ if __name__ == '__main__':
                         return
             model.train(mode=was_training)
 
-    ######################################################################
-    # Finetuning the convnet
-    # ----------------------
-    #
-    # Load a pretrained model and reset final fully connected layer.
-    #
+    # Finetune covnet layer and implement resnet18 while reseting final connected layer
 
     model_ft = models.resnet18(pretrained=True)
     num_ftrs = model_ft.fc.in_features
@@ -213,71 +181,14 @@ if __name__ == '__main__':
     # Decay LR by a factor of 0.1 every 7 epochs
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
 
-    ######################################################################
-    # Train and evaluate
-    # ^^^^^^^^^^^^^^^^^^
-    #
-    # It should take around 15-25 min on CPU. On GPU though, it takes less than a
-    # minute.
-    #
+    # train and val loop
 
     model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,
                            num_epochs=25)
 
-    ######################################################################
-    #
 
     visualize_model(model_ft)
 
-
-    ######################################################################
-    # ConvNet as fixed feature extractor
-    # ----------------------------------
-    #
-    # Here, we need to freeze all the network except the final layer. We need
-    # to set ``requires_grad == False`` to freeze the parameters so that the
-    # gradients are not computed in ``backward()``.
-    #
-    # You can read more about this in the documentation
-    # `here <https://pytorch.org/docs/notes/autograd.html#excluding-subgraphs-from-backward>`__.
-    #
-
-    model_conv = torchvision.models.resnet18(pretrained=True)
-    for param in model_conv.parameters():
-        param.requires_grad = False
-
-    # Parameters of newly constructed modules have requires_grad=True by default
-    num_ftrs = model_conv.fc.in_features
-    model_conv.fc = nn.Linear(num_ftrs, 2)
-
-    model_conv = model_conv.to(device)
-
-    criterion = nn.CrossEntropyLoss()
-
-    # Observe that only parameters of final layer are being optimized as
-    # opposed to before.
-    optimizer_conv = optim.SGD(model_conv.fc.parameters(), lr=0.001, momentum=0.9)
-
-    # Decay LR by a factor of 0.1 every 7 epochs
-    exp_lr_scheduler = lr_scheduler.StepLR(optimizer_conv, step_size=7, gamma=0.1)
-
-
-    ######################################################################
-    # Train and evaluate
-    # ^^^^^^^^^^^^^^^^^^
-    #
-    # On CPU this will take about half the time compared to previous scenario.
-    # This is expected as gradients don't need to be computed for most of the
-    # network. However, forward does need to be computed.
-    #
-
-    model_conv = train_model(model_conv, criterion, optimizer_conv,
-                             exp_lr_scheduler, num_epochs=25)
-
-    ######################################################################
-    #
-
-    visualize_model(model_conv)
 
     plt.ioff()
     plt.show()

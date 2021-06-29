@@ -1,6 +1,8 @@
 from PIL import Image
 import pandas as pd
 
+# Cropping RGB images to get more of the lettuce in the picture
+
 df = pd.read_csv(r'C:\Users\j_theocharides\PycharmProjects\AiCore_Lettuce\Lettuce_images\Image_dataset.csv')
 
 cat = df['Variety'].to_list()
